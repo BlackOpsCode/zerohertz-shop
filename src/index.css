@@ -1,0 +1,164 @@
+/* ==========================
+   GLOBAL VARIABLES
+========================== */
+:root {
+  /* Background */
+  --bg-main: #0B0E11;       /* Midnight black */
+  --bg-surface: #11151C;    /* Carduri / secțiuni */
+
+  /* Text */
+  --text-main: #E6E6E6;     /* Off-white principal */
+  --text-muted: #9AA0A6;    /* Text secundar / muted */
+
+  /* Accent */
+  --accent-amber: #F5A524;  /* Hover / buttons */
+
+  /* Border & transition */
+  --radius: 10px;
+  --transition: 0.25s ease;
+
+  /* Fonts */
+  --font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ==========================
+   RESET + GLOBALS
+========================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-family);
+  line-height: 1.6;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ==========================
+   TYPOGRAPHY
+========================== */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+p, span, li {
+  color: var(--text-main);
+}
+
+/* ==========================
+   UTILITY CLASSES
+========================== */
+.text-muted {
+  color: var(--text-muted);
+}
+
+.bg-surface {
+  background-color: var(--bg-surface);
+  border-radius: var(--radius);
+}
+
+.transition {
+  transition: all var(--transition);
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.grid {
+  display: grid;
+}
+
+/* ==========================
+   RESPONSIVE (mobile-first)
+========================== */
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 0;
+}
+
+@media (min-width: 768px) {
+  .container {
+    width: 85%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    width: 80%;
+  }
+}
+
+/* ==========================
+   BUTTON STYLING (minimal)
+========================== */
+.button {
+  background-color: var(--accent-amber);
+  color: var(--bg-main);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* ==========================
+   CARD / SURFACE BASE
+========================== */
+.card {
+  background-color: var(--bg-surface);
+  border-radius: var(--radius);
+  padding: 1rem;
+  transition: var(--transition);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* ocupa tot ecranul */
+  overflow: hidden;
+}
+
+/* Conținutul principal să crească */
+.page-content {
+  flex: 1; /* ia tot spațiul disponibil */
+}

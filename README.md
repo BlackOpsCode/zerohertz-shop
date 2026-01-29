@@ -46,3 +46,7 @@ It features a clean UI, category-based navigation, and a scalable structure for 
 - **React Icons**
 
 ---
+## 🌐 Live Demo
+
+You can check out **ZeroHertz Shop** deployed [here](https://zerohertz-shop.netlify.app/).  
+Explore all instruments, accessories, and software categories in a fully responsive interface!

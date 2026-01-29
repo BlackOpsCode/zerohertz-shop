@@ -1,16 +1,75 @@
-# React + Vite
+# 🎸 ZeroHertz Shop
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**ZeroHertz** is a modern, responsive online music store built with **React**.  
+It features a clean UI, category-based navigation, and a scalable structure for a full-featured e-commerce platform dedicated to musicians and audio engineers.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## React Compiler
+- 🎵 Multiple instrument categories:
+  - Drums
+  - Guitars & Bass
+  - Keyboards & Pianos
+  - Synths
+  - Microphones
+  - Audio Interfaces
+  - Studio Monitors
+  - Recording Gear
+  - Cables & Accessories
+  - Software
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+- 📱 Fully responsive design
+  - Desktop & mobile friendly
+  - Fullscreen burger menu
+  - Scrollable mobile menus (no visible scrollbar)
 
-## Expanding the ESLint configuration
+- 🧭 Category filtering
+  - Sidebar filtering on desktop
+  - Quick category bar on mobile
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- 🧩 Reusable layout
+  - Shared CSS class conventions (`instrument-*`)
+  - Modular page structure
+
+- 🖤 Modern dark UI
+  - Music-focused aesthetic
+  - Clean grid-based product layout
+
+---
+
+## 🛠️ Tech Stack
+
+- **React**
+- **React Router**
+- **CSS (custom, no UI frameworks)**
+- **React Icons**
+
+---
+
+## 📁 Project Structure
+
+```txt
+src/
+│
+├── auxiliars/
+│   ├── TopBar.jsx
+│   └── Footer.jsx
+│
+├── pages/
+│   ├── Guitars.jsx
+│   ├── Bass.jsx
+│   ├── Keyboards.jsx
+│   ├── Synths.jsx
+│   ├── Microphones.jsx
+│   ├── AudioInterfaces.jsx
+│   ├── StudioMonitors.jsx
+│   ├── RecordingGear.jsx
+│   ├── Cables.jsx
+│   ├── Accessories.jsx
+│   └── Software.jsx
+│
+├── styles/
+│   └── instruments.css
+│
+└── App.jsx

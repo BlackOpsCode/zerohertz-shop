@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
-import Card from "../auxiliars/Card"; // importăm Card
+import Card from "../auxiliars/Card";
+import Seo from "../auxiliars/Seo"; // helper SEO universal
 
 const synthImage = "/synths/synth.jpg";
 
@@ -35,7 +35,7 @@ const slugify = (s = "") =>
 const unslug = (s = "") =>
   s.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
-// titlu SEO
+// extrage titlu SEO din slug
 const labelFromSlug = (slug) => {
   if (!slug) return null;
   for (const cat of synthCategories) {
@@ -54,8 +54,7 @@ export default function Synths() {
 
   // sincronizare URL → state
   useEffect(() => {
-    if (category) setSelectedCategory(category);
-    else setSelectedCategory(null);
+    setSelectedCategory(category || null);
   }, [category]);
 
   // filtrare după slug
@@ -65,11 +64,17 @@ export default function Synths() {
 
   const readable = labelFromSlug(selectedCategory);
 
-  const handleSelectCategory = (displayName) => {
-    const slug = slugify(displayName);
+  const handleSelectCategory = (item) => {
+    const slug = slugify(item);
     setSelectedCategory(slug);
     navigate(`/synths/${slug}`);
   };
+
+  // SEO
+  const seoTitle = readable ? `${readable} | 0Hz Synths` : "Synths & Accessories | 0Hz";
+  const seoDescription = readable
+    ? `Explore all ${readable} synths for studio and stage.`
+    : "Explore all synths, modulars, hybrids, and accessories for music production.";
 
   return (
     <div className="page-wrapper">
@@ -78,21 +83,9 @@ export default function Synths() {
           <TopBar />
 
           {/* SEO */}
-          <Helmet>
-            <title>
-              {selectedCategory ? `${readable} | 0Hz Synths` : "Synths & Accessories | 0Hz"}
-            </title>
-            <meta
-              name="description"
-              content={
-                selectedCategory
-                  ? `Explore all ${readable} synths. Instruments for studio and stage.`
-                  : "Explore all synths and accessories engineered for performance and sound design."
-              }
-            />
-          </Helmet>
+          <Seo title={seoTitle} description={seoDescription} />
 
-          {/* Mobile swipe bar */}
+          {/* Mobile category bar */}
           <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
             {synthCategories.map(cat => (
               <button
@@ -104,8 +97,8 @@ export default function Synths() {
                     : ""
                 }`}
                 onClick={() =>
-                  (selectedCategory &&
-                    cat.items.map(i => slugify(i)).includes(selectedCategory))
+                  selectedCategory &&
+                  cat.items.map(i => slugify(i)).includes(selectedCategory)
                     ? setSelectedCategory(selectedCategory)
                     : handleSelectCategory(cat.items[0])
                 }
@@ -149,7 +142,6 @@ export default function Synths() {
                   onClick={() =>
                     navigate(`/synths/${slugify(synth.type)}/${slugify(synth.name)}`)
                   }
-                  // aici poți adăuga props pentru inimioară favorite
                 />
               ))}
             </main>

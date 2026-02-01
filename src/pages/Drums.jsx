@@ -1,10 +1,9 @@
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
-
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
-import Card from "../auxiliars/Card"; // importăm componenta Card
+import Card from "../auxiliars/Card";
+import Seo from "../auxiliars/Seo";
 
 const instrumentImage = '/drums/dw_drums.png';
 
@@ -39,42 +38,51 @@ const instruments = [
 export default function Drums() {
   const { category, instrumentName } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [selectedCategory, setSelectedCategory] = useState(category || null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
+  // Sincronizare state cu URL-ul
+  useEffect(() => {
+    const pathParts = location.pathname.split("/"); // ex: ["", "drums", "acoustic", "yamaha-stage-custom"]
+    const cat = pathParts[2]; // "/drums/:category"
+    setSelectedCategory(cat || null);
+  }, [location.pathname]);
+
+  // Filtrare după categorie
   const filteredInstruments = selectedCategory
     ? instruments.filter(inst => inst.type.toLowerCase() === selectedCategory.toLowerCase())
     : instruments;
 
   const handleSelectCategory = (catName) => {
-    setSelectedCategory(catName);
-    navigate(`/drums/${catName.toLowerCase()}`);
+    const slug = catName.toLowerCase().replace(/\s+/g, "-");
+    navigate(`/drums/${slug}`);
   };
 
   const handleSelectInstrument = (instName) => {
     const urlName = instName.toLowerCase().replace(/\s+/g, "-");
     if (selectedCategory) {
-      navigate(`/drums/${selectedCategory.toLowerCase()}/${urlName}`);
+      navigate(`/drums/${selectedCategory}/${urlName}`);
     } else {
       navigate(`/drums/${urlName}`);
     }
   };
+
+  // SEO
+  const seoTitle = instrumentName
+    ? `${instrumentName} | ${selectedCategory} | 0Hz Drums`
+    : selectedCategory
+    ? `${selectedCategory} | 0Hz Drums`
+    : "Drums & Percussion | 0Hz";
+
+  const seoDescription = `Descoperă gama noastră de ${selectedCategory || "instrumente"} la 0Hz Drums.`;
 
   return (
     <div className="page-wrapper">
       <div className="page-content">
         <div className="instruments-page">
           <TopBar />
-
-          <Helmet>
-            <title>
-              {instrumentName
-                ? `${instrumentName} | ${selectedCategory} | 0Hz Drums`
-                : selectedCategory
-                ? `${selectedCategory} | 0Hz Drums`
-                : "Drums & Percussion | 0Hz"}
-            </title>
-          </Helmet>
+          <Seo title={seoTitle} description={seoDescription} />
 
           {/* Mobile type bar */}
           <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
@@ -82,9 +90,11 @@ export default function Drums() {
               <button
                 key={cat.name}
                 className={`type-btn ${
-                  selectedCategory && cat.items.includes(selectedCategory) ? "active" : ""
+                  selectedCategory && cat.items.map(i => i.toLowerCase()).includes(selectedCategory)
+                    ? "active"
+                    : ""
                 }`}
-                onClick={() => handleSelectCategory(cat.items[0])}
+                onClick={() => handleSelectCategory(cat.items[0])} // poți alege primul item sau alt logic
                 style={{ display: "inline-block", marginRight: "0.5rem" }}
               >
                 {cat.name}
@@ -103,7 +113,7 @@ export default function Drums() {
                       <button
                         key={item}
                         className={`type-btn sub-btn ${
-                          selectedCategory === item ? "active" : ""
+                          selectedCategory === item.toLowerCase() ? "active" : ""
                         }`}
                         onClick={() => handleSelectCategory(item)}
                       >

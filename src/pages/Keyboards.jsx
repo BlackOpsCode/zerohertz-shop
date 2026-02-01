@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
-import Card from "../auxiliars/Card"; // importăm Card
+import Card from "../auxiliars/Card";
+import Seo from "../auxiliars/Seo"; // <- helper SEO
 
 const keyboardImage = "/keyboards/keyboard.jpg";
 
@@ -29,15 +29,17 @@ const keyboards = [
 ];
 
 // helpers pentru URL slug
-const slugify = s => s.toLowerCase().replace(/\s+/g, "-");
-const unslug = s =>
-  s.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+const slugify = (s = "") => s.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+const unslug = (s = "") => s.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
 export default function Keyboards() {
   const { category } = useParams();
   const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState(category || null);
 
-  const selectedCategory = category || null;
+  useEffect(() => {
+    setSelectedCategory(category || null);
+  }, [category]);
 
   const filteredKeyboards = selectedCategory
     ? keyboards.filter(k => slugify(k.type) === selectedCategory)
@@ -45,7 +47,17 @@ export default function Keyboards() {
 
   const readable = selectedCategory ? unslug(selectedCategory) : null;
 
-  const handleSelectCategory = (item) => navigate(`/keyboards/${slugify(item)}`);
+  const handleSelectCategory = (item) => {
+    const slug = slugify(item);
+    setSelectedCategory(slug);
+    navigate(`/keyboards/${slug}`);
+  };
+
+  // SEO
+  const seoTitle = readable ? `${readable} | 0Hz Keyboards` : "Keyboards & Pianos | 0Hz";
+  const seoDescription = readable
+    ? `Explore all ${readable}. Instruments for stage and home use.`
+    : "Explore all keyboards, digital and acoustic pianos, and accessories.";
 
   return (
     <div className="page-wrapper">
@@ -54,19 +66,7 @@ export default function Keyboards() {
           <TopBar />
 
           {/* SEO */}
-          <Helmet>
-            <title>
-              {readable ? `${readable} | 0Hz Keyboards` : "Keyboards & Pianos | 0Hz"}
-            </title>
-            <meta
-              name="description"
-              content={
-                readable
-                  ? `Explore all ${readable}. Instruments for stage and home use.`
-                  : "Explore all keyboards, digital and acoustic pianos, and accessories."
-              }
-            />
-          </Helmet>
+          <Seo title={seoTitle} description={seoDescription} />
 
           {/* Mobile swipe bar */}
           <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
@@ -80,9 +80,9 @@ export default function Keyboards() {
                     : ""
                 }`}
                 onClick={() =>
-                  selectedCategory &&
-                  cat.items.map(i => slugify(i)).includes(selectedCategory)
-                    ? navigate(`/keyboards/${selectedCategory}`)
+                  (selectedCategory &&
+                    cat.items.map(i => slugify(i)).includes(selectedCategory))
+                    ? setSelectedCategory(selectedCategory)
                     : handleSelectCategory(cat.items[0])
                 }
                 style={{ marginRight: "0.5rem", display: "inline-block" }}
@@ -125,7 +125,6 @@ export default function Keyboards() {
                   onClick={() =>
                     navigate(`/keyboards/${slugify(keyboard.type)}/${slugify(keyboard.name)}`)
                   }
-                  // optional: aici poți activa favorite heart
                 />
               ))}
             </main>
@@ -136,4 +135,5 @@ export default function Keyboards() {
     </div>
   );
 }
+
 

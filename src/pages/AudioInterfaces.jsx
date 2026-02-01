@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
-import Card from "../auxiliars/Card"; // importăm Card
+import Card from "../auxiliars/Card";
+import Seo from "../auxiliars/Seo"; // SEO universal
 
 const interfaceImage = "/audio-interfaces/audio-interface-1.webp";
 
@@ -33,19 +33,30 @@ const audioInterfaces = [
 
 // helpers URL slug
 const slugify = (s = "") =>
-  String(s).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+  String(s).trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
 const unslug = (s = "") =>
   s.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
+// extrage titlu SEO din slug
+const labelFromSlug = (slug) => {
+  if (!slug) return null;
+  for (const cat of interfaceCategories) {
+    for (const item of cat.items) {
+      if (slugify(item) === slug) return item;
+    }
+  }
+  return unslug(slug);
+};
+
 export default function AudioInterfaces() {
-  const { category } = useParams(); // /audio-interfaces/:category?
+  const { category } = useParams();
   const navigate = useNavigate();
 
   const [selectedCategory, setSelectedCategory] = useState(category || null);
 
+  // sincronizare URL → state
   useEffect(() => {
-    if (category) setSelectedCategory(category);
-    else setSelectedCategory(null);
+    setSelectedCategory(category || null);
   }, [category]);
 
   // filtrare după categorie
@@ -53,13 +64,21 @@ export default function AudioInterfaces() {
     ? audioInterfaces.filter(ai => slugify(ai.type) === selectedCategory)
     : audioInterfaces;
 
-  const readable = selectedCategory ? unslug(selectedCategory) : null;
+  const readable = labelFromSlug(selectedCategory);
 
-  const handleSelectCategory = (displayName) => {
-    const slug = slugify(displayName);
+  const handleSelectCategory = (item) => {
+    const slug = slugify(item);
     setSelectedCategory(slug);
     navigate(`/audio-interfaces/${slug}`);
   };
+
+  // SEO
+  const seoTitle = readable
+    ? `${readable} | 0Hz Audio Interfaces`
+    : "Audio Interfaces | 0Hz";
+  const seoDescription = readable
+    ? `Explore all ${readable} audio interfaces for studio and live use.`
+    : "Explore all USB, Thunderbolt, PCIe, Wireless audio interfaces and accessories.";
 
   return (
     <div className="page-wrapper">
@@ -67,22 +86,9 @@ export default function AudioInterfaces() {
         <div className="instruments-page">
           <TopBar />
 
-          {/* SEO */}
-          <Helmet>
-            <title>
-              {readable ? `${readable} | 0Hz Audio Interfaces` : "Audio Interfaces | 0Hz"}
-            </title>
-            <meta
-              name="description"
-              content={
-                readable
-                  ? `Explore all ${readable} audio interfaces for studio and live use.`
-                  : "Explore all USB, Thunderbolt, PCIe, Wireless audio interfaces and accessories."
-              }
-            />
-          </Helmet>
+          <Seo title={seoTitle} description={seoDescription} />
 
-          {/* Mobile bar */}
+          {/* Mobile category bar */}
           <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
             {interfaceCategories.map(cat => (
               <button
@@ -94,8 +100,8 @@ export default function AudioInterfaces() {
                     : ""
                 }`}
                 onClick={() =>
-                  (selectedCategory &&
-                    cat.items.map(i => slugify(i)).includes(selectedCategory))
+                  selectedCategory &&
+                  cat.items.map(i => slugify(i)).includes(selectedCategory)
                     ? setSelectedCategory(selectedCategory)
                     : handleSelectCategory(cat.items[0])
                 }
@@ -139,7 +145,6 @@ export default function AudioInterfaces() {
                   onClick={() =>
                     navigate(`/audio-interfaces/${slugify(ai.type)}/${slugify(ai.name)}`)
                   }
-                  // aici poți adăuga props pentru inimioară favorite
                 />
               ))}
             </main>

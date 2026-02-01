@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
-import Card from "../auxiliars/Card"; // folosim Card universal
+import Card from "../auxiliars/Card"; // Card universal
+import Seo from "../auxiliars/Seo"; // helper SEO
 
 const recordingImage = "/recording-gear/recording-gear.jpg";
 
@@ -48,10 +48,8 @@ export default function RecordingGear() {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState(category || null);
 
-  // sincronizare URL → state
   useEffect(() => {
-    if (category) setSelectedCategory(category);
-    else setSelectedCategory(null);
+    setSelectedCategory(category || null);
   }, [category]);
 
   const filteredGear = selectedCategory
@@ -60,11 +58,19 @@ export default function RecordingGear() {
 
   const readable = selectedCategory ? unslug(selectedCategory) : null;
 
-  const handleSelectCategory = item => {
+  const handleSelectCategory = (item) => {
     const slug = slugify(item);
     setSelectedCategory(slug);
     navigate(`/recording-gear/${slug}`);
   };
+
+  // SEO
+  const seoTitle = readable
+    ? `${readable} | 0Hz Recording Gear`
+    : "Recording Gear & Accessories | 0Hz";
+  const seoDescription = readable
+    ? `Explore all ${readable} recording gear and accessories.`
+    : "Explore microphones, audio interfaces, mixers, cables, and recording utilities.";
 
   return (
     <div className="page-wrapper">
@@ -72,21 +78,10 @@ export default function RecordingGear() {
         <div className="instruments-page">
           <TopBar />
 
-          <Helmet>
-            <title>
-              {readable ? `${readable} | 0Hz Recording Gear` : "Recording Gear | 0Hz"}
-            </title>
-            <meta
-              name="description"
-              content={
-                readable
-                  ? `Explore all ${readable} recording gear and accessories.`
-                  : "Explore microphones, audio interfaces, mixers, cables, and recording utilities."
-              }
-            />
-          </Helmet>
+          {/* SEO */}
+          <Seo title={seoTitle} description={seoDescription} />
 
-          {/* Mobile category bar */}
+          {/* Mobile swipe bar */}
           <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
             {recordingCategories.map(cat => (
               <button

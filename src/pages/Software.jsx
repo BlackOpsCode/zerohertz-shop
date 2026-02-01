@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
-import Card from "../auxiliars/Card"; // folosim Card
+import Card from "../auxiliars/Card"; // Card universal
+import Seo from "../auxiliars/Seo"; // helper SEO
 
 const softwareImage = "/software/audiomass.jpg";
 
@@ -50,8 +50,7 @@ export default function Software() {
   const [selectedCategory, setSelectedCategory] = useState(category || null);
 
   useEffect(() => {
-    if (category) setSelectedCategory(category);
-    else setSelectedCategory(null);
+    setSelectedCategory(category || null);
   }, [category]);
 
   const filteredSoftware = selectedCategory
@@ -60,11 +59,19 @@ export default function Software() {
 
   const readable = selectedCategory ? unslug(selectedCategory) : null;
 
-  const handleSelectCategory = (item) => {
+  const handleSelectCategory = item => {
     const slug = slugify(item);
     setSelectedCategory(slug);
     navigate(`/software/${slug}`);
   };
+
+  // SEO
+  const seoTitle = readable
+    ? `${readable} | 0Hz Software`
+    : "Audio Software & Tools | 0Hz";
+  const seoDescription = readable
+    ? `Explore all ${readable} audio software tools.`
+    : "Explore DAWs, plugins, mixing, mastering, and recording tools.";
 
   return (
     <div className="page-wrapper">
@@ -72,21 +79,10 @@ export default function Software() {
         <div className="instruments-page">
           <TopBar />
 
-          <Helmet>
-            <title>
-              {readable ? `${readable} | 0Hz Software` : "Audio Software | 0Hz"}
-            </title>
-            <meta
-              name="description"
-              content={
-                readable
-                  ? `Explore all ${readable} audio software tools.`
-                  : "Explore DAWs, plugins, mixing, mastering, and recording tools."
-              }
-            />
-          </Helmet>
+          {/* SEO */}
+          <Seo title={seoTitle} description={seoDescription} />
 
-          {/* Mobile bar */}
+          {/* Mobile category bar */}
           <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
             {softwareCategories.map(cat => (
               <button
@@ -98,8 +94,8 @@ export default function Software() {
                     : ""
                 }`}
                 onClick={() =>
-                  (selectedCategory &&
-                    cat.items.map(i => slugify(i)).includes(selectedCategory))
+                  selectedCategory &&
+                  cat.items.map(i => slugify(i)).includes(selectedCategory)
                     ? setSelectedCategory(selectedCategory)
                     : handleSelectCategory(cat.items[0])
                 }
@@ -143,7 +139,6 @@ export default function Software() {
                   onClick={() =>
                     navigate(`/software/${slugify(software.type)}/${slugify(software.name)}`)
                   }
-                  // optional: props pentru inimioară/favorite
                 />
               ))}
             </main>

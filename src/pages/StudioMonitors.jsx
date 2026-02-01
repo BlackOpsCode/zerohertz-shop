@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
-import Card from "../auxiliars/Card"; // folosim Card
+import Card from "../auxiliars/Card"; // Card universal
+import Seo from "../auxiliars/Seo"; // helper SEO
 
 const monitorImage = "/studio-monitors/studio-monitor-1.png";
 
@@ -39,8 +39,7 @@ export default function StudioMonitors() {
   const [selectedCategory, setSelectedCategory] = useState(category || null);
 
   useEffect(() => {
-    if (category) setSelectedCategory(category);
-    else setSelectedCategory(null);
+    setSelectedCategory(category || null);
   }, [category]);
 
   const filteredMonitors = selectedCategory
@@ -49,11 +48,19 @@ export default function StudioMonitors() {
 
   const readable = selectedCategory ? unslug(selectedCategory) : null;
 
-  const handleSelectCategory = (item) => {
+  const handleSelectCategory = item => {
     const slug = slugify(item);
     setSelectedCategory(slug);
     navigate(`/studio-monitors/${slug}`);
   };
+
+  // SEO
+  const seoTitle = readable
+    ? `${readable} | 0Hz Studio Monitors`
+    : "Studio Monitors & Accessories | 0Hz";
+  const seoDescription = readable
+    ? `Explore all ${readable} studio monitors for professional audio.`
+    : "Explore Nearfield, Midfield, Active, Passive studio monitors and accessories.";
 
   return (
     <div className="page-wrapper">
@@ -61,21 +68,10 @@ export default function StudioMonitors() {
         <div className="instruments-page">
           <TopBar />
 
-          <Helmet>
-            <title>
-              {readable ? `${readable} | 0Hz Studio Monitors` : "Studio Monitors | 0Hz"}
-            </title>
-            <meta
-              name="description"
-              content={
-                readable
-                  ? `Explore all ${readable} studio monitors for professional audio.`
-                  : "Explore all Nearfield, Midfield, Active, Passive studio monitors and accessories."
-              }
-            />
-          </Helmet>
+          {/* SEO */}
+          <Seo title={seoTitle} description={seoDescription} />
 
-          {/* Mobile bar */}
+          {/* Mobile category bar */}
           <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
             {monitorCategories.map(cat => (
               <button
@@ -87,8 +83,8 @@ export default function StudioMonitors() {
                     : ""
                 }`}
                 onClick={() =>
-                  (selectedCategory &&
-                    cat.items.map(i => slugify(i)).includes(selectedCategory))
+                  selectedCategory &&
+                  cat.items.map(i => slugify(i)).includes(selectedCategory)
                     ? setSelectedCategory(selectedCategory)
                     : handleSelectCategory(cat.items[0])
                 }
@@ -132,7 +128,6 @@ export default function StudioMonitors() {
                   onClick={() =>
                     navigate(`/studio-monitors/${slugify(monitor.type)}/${slugify(monitor.name)}`)
                   }
-                  // optional: props pentru inimioară/favorite
                 />
               ))}
             </main>
@@ -143,4 +138,3 @@ export default function StudioMonitors() {
     </div>
   );
 }
-

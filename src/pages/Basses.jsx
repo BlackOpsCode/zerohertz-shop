@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
-import Card from "../auxiliars/Card"; // importăm Card
+import Card from "../auxiliars/Card";
+import Seo from "../auxiliars/Seo"; // <- helper SEO
 
 const bassImage = "/basses/bass-1.jpg";
 
@@ -23,7 +23,7 @@ const basses = [
   { name: "Taylor Electro Acoustic Bass", type: "Electro-Acoustic" },
   { name: "Stentor Double Bass", type: "Double Bass" },
   { name: "D’Addario Bass Strings", type: "Strings" },
-  { name: "Hard Case Double Bass", type: "Cases" },
+  { name: "Hard Case Double Bass", type: "Cases" }
 ];
 
 // helper: slugify & unslug
@@ -44,13 +44,12 @@ const labelFromSlug = (slug) => {
 };
 
 export default function Basses() {
-  const { category } = useParams(); // /bass/:category?
+  const { category } = useParams();
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState(category || null);
 
   useEffect(() => {
-    if (category) setSelectedCategory(category);
-    else setSelectedCategory(null);
+    setSelectedCategory(category || null);
   }, [category]);
 
   const filteredBasses = selectedCategory
@@ -65,26 +64,20 @@ export default function Basses() {
 
   const readable = labelFromSlug(selectedCategory);
 
+  // SEO
+  const seoTitle = selectedCategory ? `${readable} | 0Hz Basses` : "Basses & Accessories | 0Hz";
+  const seoDescription = selectedCategory
+    ? `Explore all ${readable} basses. Built for groove and power.`
+    : "Explore all bass guitars and accessories engineered for tone and depth.";
+
   return (
     <div className="page-wrapper">
       <div className="page-content">
         <div className="instruments-page">
           <TopBar />
 
-          {/* SEO */}
-          <Helmet>
-            <title>
-              {selectedCategory ? `${readable} | 0Hz Basses` : "Basses & Accessories | 0Hz"}
-            </title>
-            <meta
-              name="description"
-              content={
-                selectedCategory
-                  ? `Explore all ${readable} basses. Built for groove and power.`
-                  : "Explore all bass guitars and accessories engineered for tone and depth."
-              }
-            />
-          </Helmet>
+          {/* SEO helper */}
+          <Seo title={seoTitle} description={seoDescription} />
 
           {/* Mobile swipe bar */}
           <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
@@ -140,7 +133,9 @@ export default function Basses() {
                   imgSrc={bassImage}
                   title={bass.name}
                   category={bass.type}
-                  onClick={() => navigate(`/bass/${slugify(bass.type)}/${slugify(bass.name)}`)}
+                  onClick={() =>
+                    navigate(`/bass/${slugify(bass.type)}/${slugify(bass.name)}`)
+                  }
                 />
               ))}
             </main>

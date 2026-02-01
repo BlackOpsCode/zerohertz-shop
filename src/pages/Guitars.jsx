@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
@@ -52,6 +53,15 @@ export default function Guitars() {
   const { category } = useParams();
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState(category || null);
+
+
+  const location = useLocation();
+ useEffect(() => {
+    const pathParts = location.pathname.split("/"); // ex: ["", "drums", "acoustic", "yamaha-stage-custom"]
+    const cat = pathParts[2]; // "/drums/:category"
+    setSelectedCategory(cat || null);
+  }, [location.pathname]);
+
 
   useEffect(() => {
     if (category) setSelectedCategory(category);

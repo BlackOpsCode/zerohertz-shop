@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
@@ -48,12 +49,21 @@ const labelFromSlug = (slug) => {
   return unslug(slug);
 };
 
+
+
 export default function AudioInterfaces() {
   const { category } = useParams();
   const navigate = useNavigate();
 
   const [selectedCategory, setSelectedCategory] = useState(category || null);
 
+
+  const location = useLocation();
+   useEffect(() => {
+      const pathParts = location.pathname.split("/"); // ex: ["", "drums", "acoustic", "yamaha-stage-custom"]
+      const cat = pathParts[2]; // "/drums/:category"
+      setSelectedCategory(cat || null);
+    }, [location.pathname]);
   // sincronizare URL → state
   useEffect(() => {
     setSelectedCategory(category || null);

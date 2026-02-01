@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";

@@ -1,57 +1,37 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
+import Card from "../auxiliars/Card"; // folosim Card
 
-const softwareImage = "./software/audiomass.jpg";
+const softwareImage = "/software/audiomass.jpg";
 
 const softwareCategories = [
-  {
-    name: "DAW",
-    items: ["Ableton Live", "FL Studio", "Logic Pro", "Cubase", "Reaper"]
-  },
-  {
-    name: "Recording Tools",
-    items: ["Pro Tools", "Audacity", "Studio One", "GarageBand"]
-  },
-  {
-    name: "Isolation & Noise Reduction",
-    items: ["iZotope RX", "Accusonus ERA Bundle", "Waves X-Noise"]
-  },
-  {
-    name: "Mixing & Mastering",
-    items: ["FabFilter Pro-Q", "Waves SSL G-Master Buss", "Ozone 10"]
-  },
-  {
-    name: "Plugins & Effects",
-    items: ["Kontakt", "Serum", "Massive", "Valhalla Reverb", "Nexus"]
-  }
+  { name: "DAW", items: ["Ableton Live", "FL Studio", "Logic Pro", "Cubase", "Reaper"] },
+  { name: "Recording Tools", items: ["Pro Tools", "Audacity", "Studio One", "GarageBand"] },
+  { name: "Isolation & Noise Reduction", items: ["iZotope RX", "Accusonus ERA Bundle", "Waves X-Noise"] },
+  { name: "Mixing & Mastering", items: ["FabFilter Pro-Q", "Waves SSL G-Master Buss", "Ozone 10"] },
+  { name: "Plugins & Effects", items: ["Kontakt", "Serum", "Massive", "Valhalla Reverb", "Nexus"] }
 ];
 
 const softwareList = [
-  /* === DAW === */
   { name: "Ableton Live 11", type: "Ableton Live" },
   { name: "FL Studio 20", type: "FL Studio" },
   { name: "Logic Pro X", type: "Logic Pro" },
   { name: "Cubase 12", type: "Cubase" },
   { name: "Reaper 6", type: "Reaper" },
-
-  /* === Recording Tools === */
   { name: "Pro Tools 2023", type: "Pro Tools" },
   { name: "Audacity 3.2", type: "Audacity" },
   { name: "Studio One 6", type: "Studio One" },
   { name: "GarageBand 10", type: "GarageBand" },
-
-  /* === Isolation & Noise Reduction === */
   { name: "iZotope RX 10 Advanced", type: "iZotope RX" },
   { name: "Accusonus ERA Bundle", type: "Accusonus ERA Bundle" },
   { name: "Waves X-Noise", type: "Waves X-Noise" },
-
-  /* === Mixing & Mastering === */
   { name: "FabFilter Pro-Q 3", type: "FabFilter Pro-Q" },
   { name: "Waves SSL G-Master Buss", type: "Waves SSL G-Master Buss" },
   { name: "iZotope Ozone 10", type: "Ozone 10" },
-
-  /* === Plugins & Effects === */
   { name: "Native Instruments Kontakt 7", type: "Kontakt" },
   { name: "Xfer Serum", type: "Serum" },
   { name: "Native Instruments Massive X", type: "Massive" },
@@ -59,12 +39,32 @@ const softwareList = [
   { name: "Nexus 3", type: "Nexus" }
 ];
 
+// helpers URL slug
+const slugify = s => s.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+const unslug = s => s.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
 export default function Software() {
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const { category } = useParams();
+  const navigate = useNavigate();
+
+  const [selectedCategory, setSelectedCategory] = useState(category || null);
+
+  useEffect(() => {
+    if (category) setSelectedCategory(category);
+    else setSelectedCategory(null);
+  }, [category]);
 
   const filteredSoftware = selectedCategory
-    ? softwareList.filter(s => s.type === selectedCategory)
+    ? softwareList.filter(s => slugify(s.type) === selectedCategory)
     : softwareList;
+
+  const readable = selectedCategory ? unslug(selectedCategory) : null;
+
+  const handleSelectCategory = (item) => {
+    const slug = slugify(item);
+    setSelectedCategory(slug);
+    navigate(`/software/${slug}`);
+  };
 
   return (
     <div className="page-wrapper">
@@ -72,25 +72,46 @@ export default function Software() {
         <div className="instruments-page">
           <TopBar />
 
+          <Helmet>
+            <title>
+              {readable ? `${readable} | 0Hz Software` : "Audio Software | 0Hz"}
+            </title>
+            <meta
+              name="description"
+              content={
+                readable
+                  ? `Explore all ${readable} audio software tools.`
+                  : "Explore DAWs, plugins, mixing, mastering, and recording tools."
+              }
+            />
+          </Helmet>
+
           {/* Mobile bar */}
-          <div className="types-bar">
+          <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
             {softwareCategories.map(cat => (
               <button
                 key={cat.name}
                 className={`type-btn ${
-                  selectedCategory && cat.items.includes(selectedCategory)
+                  selectedCategory &&
+                  cat.items.map(i => slugify(i)).includes(selectedCategory)
                     ? "active"
                     : ""
                 }`}
-                onClick={() => setSelectedCategory(cat.items[0])}
+                onClick={() =>
+                  (selectedCategory &&
+                    cat.items.map(i => slugify(i)).includes(selectedCategory))
+                    ? setSelectedCategory(selectedCategory)
+                    : handleSelectCategory(cat.items[0])
+                }
+                style={{ marginRight: "0.5rem", display: "inline-block" }}
               >
                 {cat.name}
               </button>
             ))}
           </div>
 
+          {/* Desktop layout */}
           <div className="instruments-layout">
-            {/* Sidebar */}
             <aside className="types-sidebar">
               {softwareCategories.map(cat => (
                 <div key={cat.name} className="category-block">
@@ -100,9 +121,9 @@ export default function Software() {
                       <button
                         key={item}
                         className={`type-btn sub-btn ${
-                          selectedCategory === item ? "active" : ""
+                          selectedCategory === slugify(item) ? "active" : ""
                         }`}
-                        onClick={() => setSelectedCategory(item)}
+                        onClick={() => handleSelectCategory(item)}
                       >
                         {item}
                       </button>
@@ -112,20 +133,18 @@ export default function Software() {
               ))}
             </aside>
 
-            {/* Grid */}
             <main className="instruments-grid">
               {filteredSoftware.map((software, idx) => (
-                <div key={idx} className="instrument-card card">
-                  <div className="instrument-image">
-                    <img
-                      src={softwareImage}
-                      alt={software.name}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  </div>
-                  <h3 className="instrument-title">{software.name}</h3>
-                  <p className="instrument-cat">{software.type}</p>
-                </div>
+                <Card
+                  key={idx}
+                  imgSrc={softwareImage}
+                  title={software.name}
+                  category={software.type}
+                  onClick={() =>
+                    navigate(`/software/${slugify(software.type)}/${slugify(software.name)}`)
+                  }
+                  // optional: props pentru inimioară/favorite
+                />
               ))}
             </main>
           </div>

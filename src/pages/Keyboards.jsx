@@ -1,31 +1,20 @@
-import React, { useState } from "react";
+import React from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
+import Card from "../auxiliars/Card"; // importăm Card
 
-// Path imagine keyboard
-const keyboardImage = "./keyboards/keyboard.jpg";
+const keyboardImage = "/keyboards/keyboard.jpg";
 
-// Categorii și subcategorii pentru keyboards
 const keyboardCategories = [
-  {
-    name: "Digital Pianos",
-    items: ["Stage Piano", "Home Piano", "Portable"]
-  },
-  {
-    name: "Acoustic Pianos",
-    items: ["Upright Piano", "Grand Piano"]
-  },
-  {
-    name: "Keyboards",
-    items: ["61 Keys", "76 Keys", "88 Keys"]
-  },
-  {
-    name: "Accessories",
-    items: ["Stands", "Pedals", "Covers"]
-  }
+  { name: "Digital Pianos", items: ["Stage Piano", "Home Piano", "Portable"] },
+  { name: "Acoustic Pianos", items: ["Upright Piano", "Grand Piano"] },
+  { name: "Keyboards", items: ["61 Keys", "76 Keys", "88 Keys"] },
+  { name: "Accessories", items: ["Stands", "Pedals", "Covers"] }
 ];
 
-// Dummy grid cu piane & keyboards
 const keyboards = [
   { name: "Yamaha P-125", type: "Stage Piano" },
   { name: "Roland FP-30X", type: "Home Piano" },
@@ -39,12 +28,24 @@ const keyboards = [
   { name: "Sustain Pedal", type: "Pedals" }
 ];
 
+// helpers pentru URL slug
+const slugify = s => s.toLowerCase().replace(/\s+/g, "-");
+const unslug = s =>
+  s.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
 export default function Keyboards() {
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const { category } = useParams();
+  const navigate = useNavigate();
+
+  const selectedCategory = category || null;
 
   const filteredKeyboards = selectedCategory
-    ? keyboards.filter(k => k.type === selectedCategory)
+    ? keyboards.filter(k => slugify(k.type) === selectedCategory)
     : keyboards;
+
+  const readable = selectedCategory ? unslug(selectedCategory) : null;
+
+  const handleSelectCategory = (item) => navigate(`/keyboards/${slugify(item)}`);
 
   return (
     <div className="page-wrapper">
@@ -52,17 +53,39 @@ export default function Keyboards() {
         <div className="instruments-page">
           <TopBar />
 
-          {/* Mobile type bar */}
-          <div className="types-bar">
+          {/* SEO */}
+          <Helmet>
+            <title>
+              {readable ? `${readable} | 0Hz Keyboards` : "Keyboards & Pianos | 0Hz"}
+            </title>
+            <meta
+              name="description"
+              content={
+                readable
+                  ? `Explore all ${readable}. Instruments for stage and home use.`
+                  : "Explore all keyboards, digital and acoustic pianos, and accessories."
+              }
+            />
+          </Helmet>
+
+          {/* Mobile swipe bar */}
+          <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
             {keyboardCategories.map(cat => (
               <button
                 key={cat.name}
                 className={`type-btn ${
-                  selectedCategory && cat.items.includes(selectedCategory)
+                  selectedCategory &&
+                  cat.items.map(i => slugify(i)).includes(selectedCategory)
                     ? "active"
                     : ""
                 }`}
-                onClick={() => setSelectedCategory(cat.items[0])}
+                onClick={() =>
+                  selectedCategory &&
+                  cat.items.map(i => slugify(i)).includes(selectedCategory)
+                    ? navigate(`/keyboards/${selectedCategory}`)
+                    : handleSelectCategory(cat.items[0])
+                }
+                style={{ marginRight: "0.5rem", display: "inline-block" }}
               >
                 {cat.name}
               </button>
@@ -71,7 +94,6 @@ export default function Keyboards() {
 
           {/* Desktop layout */}
           <div className="instruments-layout">
-            {/* Sidebar */}
             <aside className="types-sidebar">
               {keyboardCategories.map(cat => (
                 <div key={cat.name} className="category-block">
@@ -81,9 +103,9 @@ export default function Keyboards() {
                       <button
                         key={item}
                         className={`type-btn sub-btn ${
-                          selectedCategory === item ? "active" : ""
+                          selectedCategory === slugify(item) ? "active" : ""
                         }`}
-                        onClick={() => setSelectedCategory(item)}
+                        onClick={() => handleSelectCategory(item)}
                       >
                         {item}
                       </button>
@@ -93,24 +115,18 @@ export default function Keyboards() {
               ))}
             </aside>
 
-            {/* Keyboards grid */}
             <main className="instruments-grid">
               {filteredKeyboards.map((keyboard, idx) => (
-                <div key={idx} className="instrument-card card">
-                  <div className="instrument-image">
-                    <img
-                      src={keyboardImage}
-                      alt={keyboard.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover"
-                      }}
-                    />
-                  </div>
-                  <h3 className="instrument-title">{keyboard.name}</h3>
-                  <p className="instrument-cat">{keyboard.type}</p>
-                </div>
+                <Card
+                  key={idx}
+                  imgSrc={keyboardImage}
+                  title={keyboard.name}
+                  category={keyboard.type}
+                  onClick={() =>
+                    navigate(`/keyboards/${slugify(keyboard.type)}/${slugify(keyboard.name)}`)
+                  }
+                  // optional: aici poți activa favorite heart
+                />
               ))}
             </main>
           </div>
@@ -120,3 +136,4 @@ export default function Keyboards() {
     </div>
   );
 }
+

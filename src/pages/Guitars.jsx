@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
+import Card from "../auxiliars/Card"; // importăm Card
 
-// Path imagine guitar
-const guitarImage = "./guitars/HB_Amarok.jpg";
+const guitarImage = "/guitars/HB_Amarok.jpg";
 
-// Categorii și subcategorii pentru chitare
 const guitarCategories = [
   { name: "Electric", items: ["Stratocaster", "Les Paul", "Telecaster"] },
   { name: "Acoustic", items: ["Dreadnought", "Parlor", "Concert"] },
@@ -13,7 +15,6 @@ const guitarCategories = [
   { name: "Accessories", items: ["Strings", "Pickups", "Straps"] }
 ];
 
-// Dummy grid cu chitare
 const guitars = [
   { name: "Fender Stratocaster", type: "Stratocaster" },
   { name: "Gibson Les Paul", type: "Les Paul" },
@@ -25,74 +26,130 @@ const guitars = [
   { name: "Fender Strap", type: "Straps" },
 ];
 
+// helper: make slug from display name
+const slugify = (s = "") =>
+  String(s)
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9\-]/g, "");
+
+// helper: get human readable label from slug (search categories)
+const labelFromSlug = (slug) => {
+  if (!slug) return null;
+  for (const cat of guitarCategories) {
+    for (const item of cat.items) {
+      if (slugify(item) === slug) return item;
+    }
+  }
+  return slug
+    .split("-")
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+};
+
 export default function Guitars() {
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const { category } = useParams();
+  const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState(category || null);
+
+  useEffect(() => {
+    if (category) setSelectedCategory(category);
+    else setSelectedCategory(null);
+  }, [category]);
 
   const filteredGuitars = selectedCategory
-    ? guitars.filter(g => g.type === selectedCategory)
+    ? guitars.filter(g => slugify(g.type) === selectedCategory)
     : guitars;
+
+  const handleSelectCategory = (displayName) => {
+    const slug = slugify(displayName);
+    setSelectedCategory(slug);
+    navigate(`/guitars/${slug}`);
+  };
+
+  const readable = labelFromSlug(selectedCategory);
 
   return (
     <div className="page-wrapper">
       <div className="page-content">
         <div className="instruments-page">
-      <TopBar />
+          <TopBar />
 
-      {/* Mobile type bar */}
-      <div className="types-bar">
-        {guitarCategories.map(cat => (
-          <button
-            key={cat.name}
-            className={`type-btn ${selectedCategory && cat.items.includes(selectedCategory) ? "active" : ""}`}
-            onClick={() => setSelectedCategory(cat.items[0])}
-          >
-            {cat.name}
-          </button>
-        ))}
-      </div>
+          <Helmet>
+            <title>
+              {selectedCategory ? `${readable} | 0Hz Guitars` : "Guitars & Accessories | 0Hz"}
+            </title>
+            <meta
+              name="description"
+              content={
+                selectedCategory
+                  ? `Explore all ${readable} guitars. Premium instruments for studios and stages.`
+                  : "Explore all guitars, basses, and accessories engineered for studio and stage."
+              }
+            />
+          </Helmet>
 
-      {/* Desktop layout */}
-      <div className="instruments-layout">
-        {/* Sidebar */}
-        <aside className="types-sidebar">
-          {guitarCategories.map(cat => (
-            <div key={cat.name} className="category-block">
-              <div className="category-title">{cat.name}</div>
-              <div className="subcategory">
-                {cat.items.map(item => (
-                  <button
-                    key={item}
-                    className={`type-btn sub-btn ${selectedCategory === item ? "active" : ""}`}
-                    onClick={() => setSelectedCategory(item)}
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </aside>
+          {/* Mobile swipe bar */}
+          <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
+            {guitarCategories.map(cat => (
+              <button
+                key={cat.name}
+                className={`type-btn ${
+                  selectedCategory && cat.items.map(i => slugify(i)).includes(selectedCategory)
+                    ? "active"
+                    : ""
+                }`}
+                onClick={() =>
+                  (selectedCategory && cat.items.map(i => slugify(i)).includes(selectedCategory))
+                    ? setSelectedCategory(selectedCategory)
+                    : handleSelectCategory(cat.items[0])
+                }
+                style={{ display: "inline-block", marginRight: "0.5rem" }}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
 
-        {/* Guitar grid */}
-        <main className="instruments-grid">
-          {filteredGuitars.map((guitar, idx) => (
-            <div key={idx} className="instrument-card card">
-              <div className="instrument-image">
-                <img 
-                  src={guitarImage}
-                  alt={guitar.name} 
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          {/* Desktop layout */}
+          <div className="instruments-layout">
+            <aside className="types-sidebar">
+              {guitarCategories.map(cat => (
+                <div key={cat.name} className="category-block">
+                  <div className="category-title">{cat.name}</div>
+                  <div className="subcategory">
+                    {cat.items.map(item => (
+                      <button
+                        key={item}
+                        className={`type-btn sub-btn ${
+                          selectedCategory === slugify(item) ? "active" : ""
+                        }`}
+                        onClick={() => handleSelectCategory(item)}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </aside>
+
+            <main className="instruments-grid">
+              {filteredGuitars.map((guitar, idx) => (
+                <Card
+                  key={idx}
+                  imgSrc={guitarImage}
+                  title={guitar.name}
+                  category={guitar.type}
+                  onClick={() => navigate(`/guitars/${slugify(guitar.type)}/${slugify(guitar.name)}`)}
                 />
-              </div>
-              <h3 className="instrument-title">{guitar.name}</h3>
-              <p className="instrument-cat">{guitar.type}</p>
-            </div>
-          ))}
-        </main>
+              ))}
+            </main>
+          </div>
+        </div>
       </div>
-    </div>
-      </div>
-       <Footer/>
+      <Footer />
     </div>
   );
 }

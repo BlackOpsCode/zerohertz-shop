@@ -1,35 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
+import Card from "../auxiliars/Card"; // folosim Card
 
-// Path imagine studio monitor
-const monitorImage = "./studio-monitors/studio-monitor-1.png";
+const monitorImage = "/studio-monitors/studio-monitor-1.png";
 
-// Categorii și subcategorii pentru Studio Monitors
 const monitorCategories = [
-  {
-    name: "Nearfield",
-    items: ["2-Way", "3-Way"]
-  },
-  {
-    name: "Midfield",
-    items: ["2-Way", "3-Way"]
-  },
-  {
-    name: "Active",
-    items: ["Compact", "Professional"]
-  },
-  {
-    name: "Passive",
-    items: ["Compact", "Professional"]
-  },
-  {
-    name: "Accessories",
-    items: ["Stands", "Cables", "Isolation Pads"]
-  }
+  { name: "Nearfield", items: ["2-Way", "3-Way"] },
+  { name: "Midfield", items: ["2-Way", "3-Way"] },
+  { name: "Active", items: ["Compact", "Professional"] },
+  { name: "Passive", items: ["Compact", "Professional"] },
+  { name: "Accessories", items: ["Stands", "Cables", "Isolation Pads"] }
 ];
 
-// Dummy grid cu Studio Monitors
 const studioMonitors = [
   { name: "KRK Rokit 5 G4", type: "2-Way" },
   { name: "Yamaha HS8", type: "3-Way" },
@@ -42,12 +28,32 @@ const studioMonitors = [
   { name: "Auralex Isolation Pad", type: "Isolation Pads" }
 ];
 
+// helpers URL slug
+const slugify = s => s.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+const unslug = s => s.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
 export default function StudioMonitors() {
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const { category } = useParams();
+  const navigate = useNavigate();
+
+  const [selectedCategory, setSelectedCategory] = useState(category || null);
+
+  useEffect(() => {
+    if (category) setSelectedCategory(category);
+    else setSelectedCategory(null);
+  }, [category]);
 
   const filteredMonitors = selectedCategory
-    ? studioMonitors.filter(m => m.type === selectedCategory)
+    ? studioMonitors.filter(m => slugify(m.type) === selectedCategory)
     : studioMonitors;
+
+  const readable = selectedCategory ? unslug(selectedCategory) : null;
+
+  const handleSelectCategory = (item) => {
+    const slug = slugify(item);
+    setSelectedCategory(slug);
+    navigate(`/studio-monitors/${slug}`);
+  };
 
   return (
     <div className="page-wrapper">
@@ -55,17 +61,38 @@ export default function StudioMonitors() {
         <div className="instruments-page">
           <TopBar />
 
-          {/* Mobile type bar */}
-          <div className="types-bar">
+          <Helmet>
+            <title>
+              {readable ? `${readable} | 0Hz Studio Monitors` : "Studio Monitors | 0Hz"}
+            </title>
+            <meta
+              name="description"
+              content={
+                readable
+                  ? `Explore all ${readable} studio monitors for professional audio.`
+                  : "Explore all Nearfield, Midfield, Active, Passive studio monitors and accessories."
+              }
+            />
+          </Helmet>
+
+          {/* Mobile bar */}
+          <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
             {monitorCategories.map(cat => (
               <button
                 key={cat.name}
                 className={`type-btn ${
-                  selectedCategory && cat.items.includes(selectedCategory)
+                  selectedCategory &&
+                  cat.items.map(i => slugify(i)).includes(selectedCategory)
                     ? "active"
                     : ""
                 }`}
-                onClick={() => setSelectedCategory(cat.items[0])}
+                onClick={() =>
+                  (selectedCategory &&
+                    cat.items.map(i => slugify(i)).includes(selectedCategory))
+                    ? setSelectedCategory(selectedCategory)
+                    : handleSelectCategory(cat.items[0])
+                }
+                style={{ marginRight: "0.5rem", display: "inline-block" }}
               >
                 {cat.name}
               </button>
@@ -74,7 +101,6 @@ export default function StudioMonitors() {
 
           {/* Desktop layout */}
           <div className="instruments-layout">
-            {/* Sidebar */}
             <aside className="types-sidebar">
               {monitorCategories.map(cat => (
                 <div key={cat.name} className="category-block">
@@ -84,9 +110,9 @@ export default function StudioMonitors() {
                       <button
                         key={item}
                         className={`type-btn sub-btn ${
-                          selectedCategory === item ? "active" : ""
+                          selectedCategory === slugify(item) ? "active" : ""
                         }`}
-                        onClick={() => setSelectedCategory(item)}
+                        onClick={() => handleSelectCategory(item)}
                       >
                         {item}
                       </button>
@@ -96,24 +122,18 @@ export default function StudioMonitors() {
               ))}
             </aside>
 
-            {/* Studio Monitors grid */}
             <main className="instruments-grid">
               {filteredMonitors.map((monitor, idx) => (
-                <div key={idx} className="instrument-card card">
-                  <div className="instrument-image">
-                    <img
-                      src={monitorImage}
-                      alt={monitor.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover"
-                      }}
-                    />
-                  </div>
-                  <h3 className="instrument-title">{monitor.name}</h3>
-                  <p className="instrument-cat">{monitor.type}</p>
-                </div>
+                <Card
+                  key={idx}
+                  imgSrc={monitorImage}
+                  title={monitor.name}
+                  category={monitor.type}
+                  onClick={() =>
+                    navigate(`/studio-monitors/${slugify(monitor.type)}/${slugify(monitor.name)}`)
+                  }
+                  // optional: props pentru inimioară/favorite
+                />
               ))}
             </main>
           </div>
@@ -123,3 +143,4 @@ export default function StudioMonitors() {
     </div>
   );
 }
+

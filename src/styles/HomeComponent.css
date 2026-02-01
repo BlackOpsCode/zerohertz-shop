@@ -54,13 +54,52 @@
   align-items: flex-start;
   justify-content: center;
   margin-bottom: 2rem;
+
+  position: relative;   /* IMPORTANT */
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+
+  background-image: url("/soundwave.jpg");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  z-index: 0;
+
+  /* fade spre transparent pe margini */
+  -webkit-mask-image:
+    linear-gradient(to top,    rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20%),
+    linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20%),
+    linear-gradient(to left,   rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20%),
+    linear-gradient(to right,  rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20%);
+
+  -webkit-mask-composite: intersect;
+
+  mask-image:
+    linear-gradient(to top,    rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20%),
+    linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20%),
+    linear-gradient(to left,   rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20%),
+    linear-gradient(to right,  rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20%);
+
+  mask-composite: intersect;
 }
 
 .hero-content {
   width: 100%;
   max-width: 900px;
   text-align: center;
+
+  position: relative; /* IMPORTANT */
+  z-index: 1;
+
+  padding-top: 3rem; /* ca sa nu stea lipit sus */
+  color: #fff;
 }
+
 
 /* Mobile: gradient clipped title (keeps nice color effect) */
 .hero-title {
@@ -268,8 +307,8 @@
     font-size: clamp(3.2rem, 6vw, 5.2rem);
   }
   .home{
-    padding-left: 4rem;
-    padding-right: 4rem;
+    padding-left: 5rem;
+    padding-right: 5rem;
     padding-top: 8rem;
   }
 
@@ -310,9 +349,8 @@
 
   /* MILESTONES: title above grid, grid 3x2, equal heights */
   .milestones-wrapper {
-    max-width: 1320px;
-    margin: 1.6rem auto 0;
-    padding-inline: 1.25rem;
+    max-width: 100%;
+    margin: 0 0 0;
     gap: 0.5rem;
   }
 

@@ -1,35 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
+import Card from "../auxiliars/Card"; // importăm Card
 
-// Path imagine synth
-const synthImage = "./synths/synth.jpg";
+const synthImage = "/synths/synth.jpg";
 
-// Categorii și subcategorii pentru synths
 const synthCategories = [
-  {
-    name: "Analog",
-    items: ["Monophonic", "Polyphonic"]
-  },
-  {
-    name: "Digital",
-    items: ["FM", "Wavetable", "VA"]
-  },
-  {
-    name: "Hybrid",
-    items: ["Analog-Digital"]
-  },
-  {
-    name: "Modular",
-    items: ["Eurorack", "Semi-Modular"]
-  },
-  {
-    name: "Accessories",
-    items: ["Patch Cables", "Cases", "Power Supplies"]
-  }
+  { name: "Analog", items: ["Monophonic", "Polyphonic"] },
+  { name: "Digital", items: ["FM", "Wavetable", "VA"] },
+  { name: "Hybrid", items: ["Analog-Digital"] },
+  { name: "Modular", items: ["Eurorack", "Semi-Modular"] },
+  { name: "Accessories", items: ["Patch Cables", "Cases", "Power Supplies"] }
 ];
 
-// Dummy grid cu synths
 const synths = [
   { name: "Moog Subsequent 37", type: "Monophonic" },
   { name: "Korg Minilogue XD", type: "Polyphonic" },
@@ -43,12 +29,47 @@ const synths = [
   { name: "Modular Case 104HP", type: "Cases" }
 ];
 
-export default function Synths() {
-  const [selectedCategory, setSelectedCategory] = useState(null);
+// helpers URL slug
+const slugify = (s = "") =>
+  String(s).trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+const unslug = (s = "") =>
+  s.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
+// titlu SEO
+const labelFromSlug = (slug) => {
+  if (!slug) return null;
+  for (const cat of synthCategories) {
+    for (const item of cat.items) {
+      if (slugify(item) === slug) return item;
+    }
+  }
+  return unslug(slug);
+};
+
+export default function Synths() {
+  const { category } = useParams();
+  const navigate = useNavigate();
+
+  const [selectedCategory, setSelectedCategory] = useState(category || null);
+
+  // sincronizare URL → state
+  useEffect(() => {
+    if (category) setSelectedCategory(category);
+    else setSelectedCategory(null);
+  }, [category]);
+
+  // filtrare după slug
   const filteredSynths = selectedCategory
-    ? synths.filter(s => s.type === selectedCategory)
+    ? synths.filter(s => slugify(s.type) === selectedCategory)
     : synths;
+
+  const readable = labelFromSlug(selectedCategory);
+
+  const handleSelectCategory = (displayName) => {
+    const slug = slugify(displayName);
+    setSelectedCategory(slug);
+    navigate(`/synths/${slug}`);
+  };
 
   return (
     <div className="page-wrapper">
@@ -56,17 +77,39 @@ export default function Synths() {
         <div className="instruments-page">
           <TopBar />
 
-          {/* Mobile type bar */}
-          <div className="types-bar">
+          {/* SEO */}
+          <Helmet>
+            <title>
+              {selectedCategory ? `${readable} | 0Hz Synths` : "Synths & Accessories | 0Hz"}
+            </title>
+            <meta
+              name="description"
+              content={
+                selectedCategory
+                  ? `Explore all ${readable} synths. Instruments for studio and stage.`
+                  : "Explore all synths and accessories engineered for performance and sound design."
+              }
+            />
+          </Helmet>
+
+          {/* Mobile swipe bar */}
+          <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
             {synthCategories.map(cat => (
               <button
                 key={cat.name}
                 className={`type-btn ${
-                  selectedCategory && cat.items.includes(selectedCategory)
+                  selectedCategory &&
+                  cat.items.map(i => slugify(i)).includes(selectedCategory)
                     ? "active"
                     : ""
                 }`}
-                onClick={() => setSelectedCategory(cat.items[0])}
+                onClick={() =>
+                  (selectedCategory &&
+                    cat.items.map(i => slugify(i)).includes(selectedCategory))
+                    ? setSelectedCategory(selectedCategory)
+                    : handleSelectCategory(cat.items[0])
+                }
+                style={{ marginRight: "0.5rem", display: "inline-block" }}
               >
                 {cat.name}
               </button>
@@ -75,7 +118,6 @@ export default function Synths() {
 
           {/* Desktop layout */}
           <div className="instruments-layout">
-            {/* Sidebar */}
             <aside className="types-sidebar">
               {synthCategories.map(cat => (
                 <div key={cat.name} className="category-block">
@@ -85,9 +127,9 @@ export default function Synths() {
                       <button
                         key={item}
                         className={`type-btn sub-btn ${
-                          selectedCategory === item ? "active" : ""
+                          selectedCategory === slugify(item) ? "active" : ""
                         }`}
-                        onClick={() => setSelectedCategory(item)}
+                        onClick={() => handleSelectCategory(item)}
                       >
                         {item}
                       </button>
@@ -97,24 +139,18 @@ export default function Synths() {
               ))}
             </aside>
 
-            {/* Synths grid */}
             <main className="instruments-grid">
               {filteredSynths.map((synth, idx) => (
-                <div key={idx} className="instrument-card card">
-                  <div className="instrument-image">
-                    <img
-                      src={synthImage}
-                      alt={synth.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover"
-                      }}
-                    />
-                  </div>
-                  <h3 className="instrument-title">{synth.name}</h3>
-                  <p className="instrument-cat">{synth.type}</p>
-                </div>
+                <Card
+                  key={idx}
+                  imgSrc={synthImage}
+                  title={synth.name}
+                  category={synth.type}
+                  onClick={() =>
+                    navigate(`/synths/${slugify(synth.type)}/${slugify(synth.name)}`)
+                  }
+                  // aici poți adăuga props pentru inimioară favorite
+                />
               ))}
             </main>
           </div>

@@ -25,18 +25,26 @@ export default function App(){
     <Router>
       <Routes>
         <Route path='/' element={<HomeComponent/>}/>
-        <Route path='/drums' element={<Drums/>}/>
-        <Route path="/guitars" element={<Guitars/>}/>
-        <Route path='/bass' element={<Basses/>}/>
-        <Route path='/keyboards' element={<Keyboards/>}/>
-        <Route path='/synths' element={<Synths/>}/>
+
+        <Route path="/drums/:category?" element={<Drums />} />
+        
+        <Route path="/guitars/:category?" element={<Guitars />} />
+
+        <Route path='/bass/:category?' element={<Basses/>}/>
+    
+        <Route path='/keyboards/:category?' element={<Keyboards/>}/>
+        
+        <Route path='/synths/:category?' element={<Synths/>}/>
         {/*<Route path='/microphones' element={<Microphones/>}/>*/}
-        <Route path="/audio-interfaces" element={<AudioInterfaces/>}/>
-        <Route path="/studio-monitors" element={<StudioMonitors/>}/>
+        
+        <Route path="/audio-interfaces/:category?" element={<AudioInterfaces/>}/>
+        
+        <Route path="/studio-monitors/:category?" element={<StudioMonitors/>}/>
+        
         {/*<Route path="/cables" element={<Cables/>}/>*/}
         {/*<Route path="/accessories" element={<Accessories/>}/>*/}
-        <Route path="/software" element={<Software/>}/>
-        <Route path="/recording-gear" element={<RecordingGear/>}/>
+        <Route path="/software/:category?" element={<Software/>}/>
+        <Route path="/recording-gear/:category?" element={<RecordingGear/>}/>
         </Routes>
     </Router>
   )

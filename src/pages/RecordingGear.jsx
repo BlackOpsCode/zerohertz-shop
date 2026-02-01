@@ -1,70 +1,70 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
+import Card from "../auxiliars/Card"; // folosim Card universal
 
-const recordingImage = "./recording-gear/recording-gear.jpg";
+const recordingImage = "/recording-gear/recording-gear.jpg";
 
 const recordingCategories = [
-  {
-    name: "Microphones",
-    items: ["Condenser", "Dynamic", "Ribbon", "USB"]
-  },
-  {
-    name: "Audio Interfaces",
-    items: ["Focusrite", "Universal Audio", "PreSonus", "M-Audio"]
-  },
-  {
-    name: "Mixers & Preamp",
-    items: ["Mixers", "Mic Preamps", "Channel Strips"]
-  },
-  {
-    name: "Cables & Accessories",
-    items: ["XLR Cables", "Stands", "Shock Mounts", "Pop Filters"]
-  },
-  {
-    name: "Recording Utilities",
-    items: ["DI Boxes", "Audio Splitters", "Headphone Amps"]
-  }
+  { name: "Microphones", items: ["Condenser", "Dynamic", "Ribbon", "USB"] },
+  { name: "Audio Interfaces", items: ["Focusrite", "Universal Audio", "PreSonus", "M-Audio"] },
+  { name: "Mixers & Preamp", items: ["Mixers", "Mic Preamps", "Channel Strips"] },
+  { name: "Cables & Accessories", items: ["XLR Cables", "Stands", "Shock Mounts", "Pop Filters"] },
+  { name: "Recording Utilities", items: ["DI Boxes", "Audio Splitters", "Headphone Amps"] }
 ];
 
 const recordingGear = [
-  /* === Microphones === */
   { name: "Shure SM7B", type: "Dynamic" },
   { name: "Audio-Technica AT2020", type: "Condenser" },
   { name: "Rode NT1-A", type: "Condenser" },
   { name: "Sennheiser e906", type: "Dynamic" },
   { name: "Aston Spirit Ribbon Mic", type: "Ribbon" },
   { name: "Blue Yeti USB Mic", type: "USB" },
-
-  /* === Audio Interfaces === */
   { name: "Focusrite Scarlett 2i2", type: "Focusrite" },
   { name: "Universal Audio Apollo Twin X", type: "Universal Audio" },
   { name: "PreSonus Studio 24c", type: "PreSonus" },
   { name: "M-Audio M-Track 2X2", type: "M-Audio" },
-
-  /* === Mixers & Preamps === */
   { name: "Behringer Xenyx Q802USB", type: "Mixers" },
   { name: "Focusrite ISA One Preamp", type: "Mic Preamps" },
   { name: "Warm Audio WA-2A Channel Strip", type: "Channel Strips" },
-
-  /* === Cables & Accessories === */
   { name: "Mogami Gold XLR Cable", type: "XLR Cables" },
   { name: "K&M Microphone Stand", type: "Stands" },
   { name: "Rode PSM1 Shock Mount", type: "Shock Mounts" },
   { name: "Pop Filter Studio", type: "Pop Filters" },
-
-  /* === Recording Utilities === */
   { name: "Radial JDI DI Box", type: "DI Boxes" },
   { name: "ART SplitCom Audio Splitter", type: "Audio Splitters" },
   { name: "Behringer HA400 Headphone Amp", type: "Headphone Amps" }
 ];
 
+// helpers URL slug
+const slugify = s => s.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+const unslug = s => s.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
 export default function RecordingGear() {
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const { category } = useParams();
+  const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState(category || null);
+
+  // sincronizare URL → state
+  useEffect(() => {
+    if (category) setSelectedCategory(category);
+    else setSelectedCategory(null);
+  }, [category]);
 
   const filteredGear = selectedCategory
-    ? recordingGear.filter(g => g.type === selectedCategory)
+    ? recordingGear.filter(g => slugify(g.type) === selectedCategory)
     : recordingGear;
+
+  const readable = selectedCategory ? unslug(selectedCategory) : null;
+
+  const handleSelectCategory = item => {
+    const slug = slugify(item);
+    setSelectedCategory(slug);
+    navigate(`/recording-gear/${slug}`);
+  };
 
   return (
     <div className="page-wrapper">
@@ -72,25 +72,46 @@ export default function RecordingGear() {
         <div className="instruments-page">
           <TopBar />
 
-          {/* Mobile bar */}
-          <div className="types-bar">
+          <Helmet>
+            <title>
+              {readable ? `${readable} | 0Hz Recording Gear` : "Recording Gear | 0Hz"}
+            </title>
+            <meta
+              name="description"
+              content={
+                readable
+                  ? `Explore all ${readable} recording gear and accessories.`
+                  : "Explore microphones, audio interfaces, mixers, cables, and recording utilities."
+              }
+            />
+          </Helmet>
+
+          {/* Mobile category bar */}
+          <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
             {recordingCategories.map(cat => (
               <button
                 key={cat.name}
                 className={`type-btn ${
-                  selectedCategory && cat.items.includes(selectedCategory)
+                  selectedCategory &&
+                  cat.items.map(i => slugify(i)).includes(selectedCategory)
                     ? "active"
                     : ""
                 }`}
-                onClick={() => setSelectedCategory(cat.items[0])}
+                onClick={() =>
+                  selectedCategory &&
+                  cat.items.map(i => slugify(i)).includes(selectedCategory)
+                    ? setSelectedCategory(selectedCategory)
+                    : handleSelectCategory(cat.items[0])
+                }
+                style={{ marginRight: "0.5rem", display: "inline-block" }}
               >
                 {cat.name}
               </button>
             ))}
           </div>
 
+          {/* Desktop layout */}
           <div className="instruments-layout">
-            {/* Sidebar */}
             <aside className="types-sidebar">
               {recordingCategories.map(cat => (
                 <div key={cat.name} className="category-block">
@@ -100,9 +121,9 @@ export default function RecordingGear() {
                       <button
                         key={item}
                         className={`type-btn sub-btn ${
-                          selectedCategory === item ? "active" : ""
+                          selectedCategory === slugify(item) ? "active" : ""
                         }`}
-                        onClick={() => setSelectedCategory(item)}
+                        onClick={() => handleSelectCategory(item)}
                       >
                         {item}
                       </button>
@@ -112,20 +133,17 @@ export default function RecordingGear() {
               ))}
             </aside>
 
-            {/* Grid */}
             <main className="instruments-grid">
               {filteredGear.map((item, idx) => (
-                <div key={idx} className="instrument-card card">
-                  <div className="instrument-image">
-                    <img
-                      src={recordingImage}
-                      alt={item.name}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  </div>
-                  <h3 className="instrument-title">{item.name}</h3>
-                  <p className="instrument-cat">{item.type}</p>
-                </div>
+                <Card
+                  key={idx}
+                  imgSrc={recordingImage}
+                  title={item.name}
+                  category={item.type}
+                  onClick={() =>
+                    navigate(`/recording-gear/${slugify(item.type)}/${slugify(item.name)}`)
+                  }
+                />
               ))}
             </main>
           </div>

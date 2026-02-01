@@ -1,35 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
+import Card from "../auxiliars/Card"; // importăm Card
 
-// Path imagine audio interface
-const interfaceImage = "./audio-interfaces/audio-interface-1.webp";
+const interfaceImage = "/audio-interfaces/audio-interface-1.webp";
 
-// Categorii și subcategorii pentru Audio Interfaces
 const interfaceCategories = [
-  {
-    name: "USB",
-    items: ["2-Channel", "4-Channel", "8-Channel"]
-  },
-  {
-    name: "Thunderbolt",
-    items: ["High-End", "Pro Studio"]
-  },
-  {
-    name: "PCIe",
-    items: ["Internal", "DSP"]
-  },
-  {
-    name: "Wireless",
-    items: ["Bluetooth", "Wi-Fi"]
-  },
-  {
-    name: "Accessories",
-    items: ["Cables", "Adapters", "Stands"]
-  }
+  { name: "USB", items: ["2-Channel", "4-Channel", "8-Channel"] },
+  { name: "Thunderbolt", items: ["High-End", "Pro Studio"] },
+  { name: "PCIe", items: ["Internal", "DSP"] },
+  { name: "Wireless", items: ["Bluetooth", "Wi-Fi"] },
+  { name: "Accessories", items: ["Cables", "Adapters", "Stands"] }
 ];
 
-// Dummy grid cu Audio Interfaces
 const audioInterfaces = [
   { name: "Focusrite Scarlett 2i2", type: "2-Channel" },
   { name: "Focusrite Scarlett 4i4", type: "4-Channel" },
@@ -45,12 +31,35 @@ const audioInterfaces = [
   { name: "Interface Stand Pro", type: "Stands" }
 ];
 
-export default function AudioInterfaces() {
-  const [selectedCategory, setSelectedCategory] = useState(null);
+// helpers URL slug
+const slugify = (s = "") =>
+  String(s).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+const unslug = (s = "") =>
+  s.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
+export default function AudioInterfaces() {
+  const { category } = useParams(); // /audio-interfaces/:category?
+  const navigate = useNavigate();
+
+  const [selectedCategory, setSelectedCategory] = useState(category || null);
+
+  useEffect(() => {
+    if (category) setSelectedCategory(category);
+    else setSelectedCategory(null);
+  }, [category]);
+
+  // filtrare după categorie
   const filteredInterfaces = selectedCategory
-    ? audioInterfaces.filter(ai => ai.type === selectedCategory)
+    ? audioInterfaces.filter(ai => slugify(ai.type) === selectedCategory)
     : audioInterfaces;
+
+  const readable = selectedCategory ? unslug(selectedCategory) : null;
+
+  const handleSelectCategory = (displayName) => {
+    const slug = slugify(displayName);
+    setSelectedCategory(slug);
+    navigate(`/audio-interfaces/${slug}`);
+  };
 
   return (
     <div className="page-wrapper">
@@ -58,17 +67,39 @@ export default function AudioInterfaces() {
         <div className="instruments-page">
           <TopBar />
 
-          {/* Mobile type bar */}
-          <div className="types-bar">
+          {/* SEO */}
+          <Helmet>
+            <title>
+              {readable ? `${readable} | 0Hz Audio Interfaces` : "Audio Interfaces | 0Hz"}
+            </title>
+            <meta
+              name="description"
+              content={
+                readable
+                  ? `Explore all ${readable} audio interfaces for studio and live use.`
+                  : "Explore all USB, Thunderbolt, PCIe, Wireless audio interfaces and accessories."
+              }
+            />
+          </Helmet>
+
+          {/* Mobile bar */}
+          <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
             {interfaceCategories.map(cat => (
               <button
                 key={cat.name}
                 className={`type-btn ${
-                  selectedCategory && cat.items.includes(selectedCategory)
+                  selectedCategory &&
+                  cat.items.map(i => slugify(i)).includes(selectedCategory)
                     ? "active"
                     : ""
                 }`}
-                onClick={() => setSelectedCategory(cat.items[0])}
+                onClick={() =>
+                  (selectedCategory &&
+                    cat.items.map(i => slugify(i)).includes(selectedCategory))
+                    ? setSelectedCategory(selectedCategory)
+                    : handleSelectCategory(cat.items[0])
+                }
+                style={{ marginRight: "0.5rem", display: "inline-block" }}
               >
                 {cat.name}
               </button>
@@ -77,7 +108,6 @@ export default function AudioInterfaces() {
 
           {/* Desktop layout */}
           <div className="instruments-layout">
-            {/* Sidebar */}
             <aside className="types-sidebar">
               {interfaceCategories.map(cat => (
                 <div key={cat.name} className="category-block">
@@ -87,9 +117,9 @@ export default function AudioInterfaces() {
                       <button
                         key={item}
                         className={`type-btn sub-btn ${
-                          selectedCategory === item ? "active" : ""
+                          selectedCategory === slugify(item) ? "active" : ""
                         }`}
-                        onClick={() => setSelectedCategory(item)}
+                        onClick={() => handleSelectCategory(item)}
                       >
                         {item}
                       </button>
@@ -99,24 +129,18 @@ export default function AudioInterfaces() {
               ))}
             </aside>
 
-            {/* Audio Interfaces grid */}
             <main className="instruments-grid">
               {filteredInterfaces.map((ai, idx) => (
-                <div key={idx} className="instrument-card card">
-                  <div className="instrument-image">
-                    <img
-                      src={interfaceImage}
-                      alt={ai.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover"
-                      }}
-                    />
-                  </div>
-                  <h3 className="instrument-title">{ai.name}</h3>
-                  <p className="instrument-cat">{ai.type}</p>
-                </div>
+                <Card
+                  key={idx}
+                  imgSrc={interfaceImage}
+                  title={ai.name}
+                  category={ai.type}
+                  onClick={() =>
+                    navigate(`/audio-interfaces/${slugify(ai.type)}/${slugify(ai.name)}`)
+                  }
+                  // aici poți adăuga props pentru inimioară favorite
+                />
               ))}
             </main>
           </div>

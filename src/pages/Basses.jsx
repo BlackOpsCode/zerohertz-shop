@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+
 import TopBar from "../auxiliars/TopBar";
 import Footer from "../auxiliars/Footer";
+import Card from "../auxiliars/Card"; // importăm Card
 
-// Path imagine bass
-const bassImage = "./basses/bass-1.jpg";
+const bassImage = "/basses/bass-1.jpg";
 
-// Categorii și subcategorii pentru bass
 const bassCategories = [
   { name: "Electric Bass", items: ["4-String", "5-String", "6-String"] },
   { name: "Acoustic Bass", items: ["Acoustic", "Electro-Acoustic"] },
@@ -13,7 +15,6 @@ const bassCategories = [
   { name: "Accessories", items: ["Strings", "Cases", "Bows"] }
 ];
 
-// Dummy grid cu bass-uri
 const basses = [
   { name: "Fender Jazz Bass", type: "4-String" },
   { name: "Ibanez SR505", type: "5-String" },
@@ -25,12 +26,44 @@ const basses = [
   { name: "Hard Case Double Bass", type: "Cases" },
 ];
 
+// helper: slugify & unslug
+const slugify = (s = "") =>
+  String(s).trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+
+const unslug = (s = "") =>
+  s.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+const labelFromSlug = (slug) => {
+  if (!slug) return null;
+  for (const cat of bassCategories) {
+    for (const item of cat.items) {
+      if (slugify(item) === slug) return item;
+    }
+  }
+  return unslug(slug);
+};
+
 export default function Basses() {
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const { category } = useParams(); // /bass/:category?
+  const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState(category || null);
+
+  useEffect(() => {
+    if (category) setSelectedCategory(category);
+    else setSelectedCategory(null);
+  }, [category]);
 
   const filteredBasses = selectedCategory
-    ? basses.filter(b => b.type === selectedCategory)
+    ? basses.filter(b => slugify(b.type) === selectedCategory)
     : basses;
+
+  const handleSelectCategory = (displayName) => {
+    const slug = slugify(displayName);
+    setSelectedCategory(slug);
+    navigate(`/bass/${slug}`);
+  };
+
+  const readable = labelFromSlug(selectedCategory);
 
   return (
     <div className="page-wrapper">
@@ -38,17 +71,39 @@ export default function Basses() {
         <div className="instruments-page">
           <TopBar />
 
-          {/* Mobile type bar */}
-          <div className="types-bar">
+          {/* SEO */}
+          <Helmet>
+            <title>
+              {selectedCategory ? `${readable} | 0Hz Basses` : "Basses & Accessories | 0Hz"}
+            </title>
+            <meta
+              name="description"
+              content={
+                selectedCategory
+                  ? `Explore all ${readable} basses. Built for groove and power.`
+                  : "Explore all bass guitars and accessories engineered for tone and depth."
+              }
+            />
+          </Helmet>
+
+          {/* Mobile swipe bar */}
+          <div className="types-bar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
             {bassCategories.map(cat => (
               <button
                 key={cat.name}
                 className={`type-btn ${
-                  selectedCategory && cat.items.includes(selectedCategory)
+                  selectedCategory &&
+                  cat.items.map(i => slugify(i)).includes(selectedCategory)
                     ? "active"
                     : ""
                 }`}
-                onClick={() => setSelectedCategory(cat.items[0])}
+                onClick={() =>
+                  (selectedCategory &&
+                    cat.items.map(i => slugify(i)).includes(selectedCategory))
+                    ? setSelectedCategory(selectedCategory)
+                    : handleSelectCategory(cat.items[0])
+                }
+                style={{ marginRight: "0.5rem", display: "inline-block" }}
               >
                 {cat.name}
               </button>
@@ -57,7 +112,6 @@ export default function Basses() {
 
           {/* Desktop layout */}
           <div className="instruments-layout">
-            {/* Sidebar */}
             <aside className="types-sidebar">
               {bassCategories.map(cat => (
                 <div key={cat.name} className="category-block">
@@ -67,9 +121,9 @@ export default function Basses() {
                       <button
                         key={item}
                         className={`type-btn sub-btn ${
-                          selectedCategory === item ? "active" : ""
+                          selectedCategory === slugify(item) ? "active" : ""
                         }`}
-                        onClick={() => setSelectedCategory(item)}
+                        onClick={() => handleSelectCategory(item)}
                       >
                         {item}
                       </button>
@@ -79,24 +133,15 @@ export default function Basses() {
               ))}
             </aside>
 
-            {/* Bass grid */}
             <main className="instruments-grid">
               {filteredBasses.map((bass, idx) => (
-                <div key={idx} className="instrument-card card">
-                  <div className="instrument-image">
-                    <img
-                      src={bassImage}
-                      alt={bass.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
-                  </div>
-                  <h3 className="instrument-title">{bass.name}</h3>
-                  <p className="instrument-cat">{bass.type}</p>
-                </div>
+                <Card
+                  key={idx}
+                  imgSrc={bassImage}
+                  title={bass.name}
+                  category={bass.type}
+                  onClick={() => navigate(`/bass/${slugify(bass.type)}/${slugify(bass.name)}`)}
+                />
               ))}
             </main>
           </div>

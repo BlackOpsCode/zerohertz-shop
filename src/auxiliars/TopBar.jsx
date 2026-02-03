@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { FaShoppingCart, FaSearch, FaBars, FaTimes, FaHeart } from "react-icons/fa";
-import { Link } from "react-router-dom"; // npm install react-router-dom
+import { FaShoppingCart, FaSearch, FaBars, FaTimes, FaHeart, FaUser, FaSignInAlt } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 export default function TopBar() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);           // Mobile full-screen menu
+  const [dropdownActive, setDropdownActive] = useState(null); // "search" | "user" | null
 
   const categories = [
     { name: "Drums", path: "/drums" },
@@ -25,25 +26,71 @@ export default function TopBar() {
   return (
     <>
       <header className="topbar">
+        {/* LOGO */}
         <div className="topbar-left">
-          <Link to={"/"} className="logo">ZeroHertz</Link>
+          <Link to="/" className="logo">
+            <span className="logo-full">ZeroHertz</span>
+            <span className="logo-short">0Hz</span>
+          </Link>
         </div>
+
+        {/* RIGHT AREA */}
         <div className="topbar-right">
-          <FaSearch className="icon" />
-          <FaHeart className="icon" /> {/* Heart adăugat aici */}
-          <FaShoppingCart className="icon" />
+          {/* SEARCH */}
+          <div className="search-wrapper">
+            <FaSearch
+              className="icon search-icon"
+              onClick={() =>
+                setDropdownActive(prev => prev === "search" ? null : "search")
+              }
+            />
+            <input
+              type="text"
+              placeholder="Search products..."
+              className={`search-input ${dropdownActive === "search" ? "open" : ""}`}
+            />
+          </div>
+
+          {/* USER DROPDOWN */}
+          <div className="user-wrapper">
+            <FaUser
+              className="icon"
+              onClick={() =>
+                setDropdownActive(prev => prev === "user" ? null : "user")
+              }
+            />
+
+            <div className={`user-dropdown ${dropdownActive === "user" ? "open" : ""}`}>
+              <Link to="/account">
+                <FaSignInAlt />
+                <span>Account</span>
+              </Link>
+              <Link to="/favorites">
+                <FaHeart />
+                <span>Favorites</span>
+              </Link>
+              <Link to="/cart">
+                <FaShoppingCart />
+                <span>Cart</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* MOBILE MENU */}
           <FaBars className="icon burger" onClick={() => setMenuOpen(true)} />
         </div>
       </header>
 
+      {/* CATEGORIES DESKTOP */}
       <nav className="categories">
-        {categories.map((cat) => (
+        {categories.map(cat => (
           <Link key={cat.name} to={cat.path} className="category">
             {cat.name}
           </Link>
         ))}
       </nav>
 
+      {/* MOBILE MENU FULL SCREEN */}
       <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
         <FaTimes className="close" onClick={() => setMenuOpen(false)} />
         <div className="mobile-menu-content">

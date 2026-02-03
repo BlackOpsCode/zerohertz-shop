@@ -14,8 +14,9 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   z-index: 999;
 }
-.topbar-left .logo { font-weight: 700; font-size: 1.2rem; color: var(--accent-amber); }
-.topbar-right { display: flex; align-items: center; gap: 0.9rem; }
+.topbar-left .logo-full { font-weight: 700; font-size: 1.2rem; color: var(--accent-amber); }
+.topbar-left .logo-short { font-weight: 700; font-size: 1.2rem; color: var(--accent-amber);}
+.topbar-right { display: flex; align-items: center; gap: 1rem; }
 .icon { font-size: 1.2rem; color: var(--text-main); cursor: pointer; transition: 0.2s; }
 .icon:hover { color: var(--accent-amber); }
 
@@ -114,10 +115,135 @@
 @media (max-width: 768px) {
   .categories { display: none; }
   .burger { display: block; }
- .topbar{
+  .topbar{
     height: 4.5rem;
- }
- .categories{
+  }
+  .categories{
     height: 4.5rem;
- }
+  }
+  .logo-full{
+    display: none;
+  }
+  .logo-short{ display: block;} 
+  .topbar-right{ gap: 0.7rem;}
+}
+@media(min-width:1200px){
+  .logo-full{ display: block;}
+  .logo-short{ display: none;}
+}
+
+
+/* USER DROPDOWN – DESKTOP CLICK / MOBILE ALWAYS OPEN */
+
+.user-wrapper {
+  position: relative;
+  display: flex; /* important ca icon-urile să stea în linie */
+  vertical-align: middle; /* aliniere verticală */
+}
+
+/* hidden by default (desktop) */
+.user-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%; /* imediat sub icon */
+  right: 0;
+  background: var(--bg-surface);
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  flex-direction: column;
+  min-width: 160px;
+  z-index: 2000;
+}
+
+
+/* desktop: open on click */
+.user-dropdown.open {
+  display: flex;
+}
+
+/* links */
+.user-dropdown a {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  transition: 0.2s;
+}
+
+.user-dropdown a:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--accent-amber);
+}
+
+
+
+
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* input desktop / mobil click */
+.search-input {
+  border: 1px solid var(--text-main);
+  border-radius: 0.5rem;
+  padding: 0.4rem 2.5rem 0.4rem 0.6rem; /* padding right pentru icon */
+  font-size: 1rem;
+  outline: none;
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  width: 220px;
+  transition: all 0.2s;
+}
+
+/* placeholder */
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* search icon în interiorul input-ului */
+.search-icon {
+  position: absolute;
+  right: 0.3rem;
+  font-size: 1.2rem;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+/* hover icon */
+.search-icon:hover {
+  color: var(--accent-amber);
+}
+
+/* MOBILE: input ascuns până la click */
+@media (max-width: 768px) {
+  .search-input {
+    display: none;
+    width: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+  }
+
+  .search-input.open {
+    display: inline-block;
+    width: 180px;
+    padding: 0.5rem 2.5rem 0.5rem 0.6rem; /* padding right pentru icon */
+    border: 1px solid var(--text-main);
+    border-radius: 0.5rem;
+    background-color: var(--bg-surface);
+  }
+}
+
+/* Desktop mai lat și mai înalt */
+@media (min-width: 769px) {
+  .search-input {
+    height: 2.2rem;
+    width: 220px;
+    font-size: 1rem;
+  }
 }
